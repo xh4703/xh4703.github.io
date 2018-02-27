@@ -1,8 +1,9 @@
 (function() {
-    var keyInput = document.getElementById('search-key'),
+    var searchWord = document.getElementById('search-key'),
+        searchLocal = document.getElementById('search-local'),
         searchForm = document.getElementById('search-form'),
-        searchWrap = document.getElementById('result-wrap'),
         searchMask = document.getElementById('result-mask'),
+        searchWrap = document.getElementById('result-wrap'),
         searchResult = document.getElementById('search-result'),
         searchTpl = document.getElementById('search-tpl').innerHTML,
         winWidth, winHeight, searchData;
@@ -40,9 +41,7 @@
         }
     }
     function matcher(post, regExp) {
-        return regtest(post.title, regExp) || post.tags.some(function(tag) {
-            return regtest(tag.name, regExp);
-        }) || regtest(post.text, regExp);
+        return regtest(post.title, regExp) || regtest(post.text, regExp);
     }
     function regtest(raw, regExp) {
         regExp.lastIndex = 0;
@@ -55,16 +54,21 @@
                 return tpl(searchTpl, {
                     title: post.title,
                     path: post.path,
-                    date: new Date(post.date).toLocaleDateString(),
-                    tags: post.tags.map(function(tag) {
-                        return '<span>' + tag.name + '</span>';
-                    }).join('')
+                    content: content(post.text)
                 });
             }).join('');
         } else {
-            html = '<div class="tips"><i class="fa fa-empty"></i><p>Results not found!</p></div>';
+            html = '<div class="tips"><p>没有找到相关结果!</p></div>';
         }
         searchResult.innerHTML = html;
+    }
+    function content(art){
+    	var keyword = searchWord.value;
+    	var index = art.indexOf(keyword);	
+    	var artRe = art.replace(keyword, '<b>' + keyword + '</b>');
+    	if (index > 0){
+            return artRe.substr(index-15, 45);
+    	}
     }
     function tpl(html, data) {
         return html.replace(/\{\w+\}/g, function(str) {
@@ -87,6 +91,7 @@
     function search(e) {
         var key = this.value.trim();
         if (!key) {
+        	render('');
             return;
         }
         var regExp = new RegExp(key.replace(/[ ]/g, '|'), 'gmi');
@@ -99,16 +104,18 @@
         e.preventDefault();
         removeClass(searchWrap, 'hide');
         removeClass(searchMask, 'hide');
-        keyInput.onfocus=function() {
+        searchWord.onfocus=function() {
             removeClass(searchWrap, 'hide');
             removeClass(searchMask, 'hide');
         };
     }
-    keyInput.onfocus=function(){
-        keyInput.addEventListener('input', search);
+    searchWord.onfocus=function(){
+        searchWord.addEventListener('input', search);
     };
     searchMask.onclick=function(){
         addClass(searchWrap, 'hide');
         addClass(searchMask, 'hide');
     };
+
+
 })();
